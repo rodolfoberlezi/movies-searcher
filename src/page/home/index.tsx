@@ -1,6 +1,10 @@
 import React, { FC, ReactElement, useEffect, useState } from "react";
 import axios from "axios";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Box,
   Center,
   Container,
@@ -28,6 +32,8 @@ export const Home: FC = (): ReactElement => {
   const [searchTitle, setSearchTerm] = useState<string>("");
   const [moviesList, setMoviesList] = useState<MoviesList>();
 
+  const [showError, setShowError] = useState<boolean>(false);
+
   const searchMovies = async () => {
     return await axios
       .get(
@@ -37,6 +43,10 @@ export const Home: FC = (): ReactElement => {
         console.log(result.data);
         setMoviesList(result.data);
         return result.data;
+      })
+      .catch((error) => {
+        setShowError(true);
+        return error;
       });
   };
 
@@ -55,9 +65,9 @@ export const Home: FC = (): ReactElement => {
   return (
     <Container maxW="container.lg">
       <Center>
-        <Stack>
+        <Stack width="80%">
           <Center>
-            <Heading as="h1">Welcome to MovieSearcher</Heading>
+            <Heading as={"h1"}>Welcome to MovieSearcher</Heading>
           </Center>
           <Center>
             <InputGroup size={"lg"} width="100%">
@@ -67,7 +77,7 @@ export const Home: FC = (): ReactElement => {
                 onChange={(event: any) => {
                   setSearchTerm(event.target.value);
                 }}
-                placeholder="Search for the title of a movie"
+                placeholder="Search for the Title of a Movie"
               ></Input>
               <InputRightElement
                 p={24}
@@ -77,29 +87,44 @@ export const Home: FC = (): ReactElement => {
             </InputGroup>
           </Center>
 
-          <Box width={"100%"} bg={"gray"}>
-            <List>
-              {moviesList?.results?.map((movie: Movie) => {
-                return (
-                  <ListItem mb={20} mr={10}>
-                    <Flex justifyContent={"space-between"}>
-                      <Box>
-                        <Heading>{movie.title}</Heading>
-                        <Text>{movie.release_date}</Text>
-                      </Box>
-                      <Img
-                        boxSize="150px"
-                        src={
-                          movie.poster_path ? getImage(movie.poster_path) : ""
-                        }
-                        alt={movie.title}
-                      ></Img>
-                    </Flex>
-                  </ListItem>
-                );
-              })}
+          <Box minW={"65%"} width={"100%"} bg={"gray"}>
+            <List p={12} fontWeight={500}>
+              {moviesList?.results?.length &&
+              moviesList?.results?.length > 0 ? (
+                moviesList?.results?.map((movie: Movie) => {
+                  return (
+                    <ListItem mb={20} border={"solid"} p={8}>
+                      <Flex justifyContent={"space-between"}>
+                        <Box mr={10}>
+                          <Heading>{movie.title}</Heading>
+                          <Text>{movie.release_date}</Text>
+                        </Box>
+                        <Img
+                          maxWidth="150px"
+                          src={
+                            movie.poster_path ? getImage(movie.poster_path) : ""
+                          }
+                          alt={movie.title}
+                        ></Img>
+                      </Flex>
+                    </ListItem>
+                  );
+                })
+              ) : (
+                <Text>Sorry, any movie was found.</Text>
+              )}
             </List>
           </Box>
+
+          {showError ?? (
+            <Alert status="error">
+              <AlertIcon />
+              <AlertTitle>Sorry, your search failed.</AlertTitle>
+              <AlertDescription>
+                Please reset the page and try again.
+              </AlertDescription>
+            </Alert>
+          )}
         </Stack>
       </Center>
     </Container>
