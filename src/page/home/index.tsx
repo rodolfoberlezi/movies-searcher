@@ -75,7 +75,12 @@ export const Home: FC = (): ReactElement => {
                 p={24}
                 width="100%"
                 onChange={(event: any) => {
-                  setSearchTerm(event.target.value);
+                  if (event.target.value) {
+                    setSearchTerm(event.target.value);
+                  } else {
+                    setSearchTerm(event.target.value);
+                    setMoviesList(undefined);
+                  }
                 }}
                 placeholder="Search for the Title of a Movie"
               ></Input>
@@ -87,34 +92,38 @@ export const Home: FC = (): ReactElement => {
             </InputGroup>
           </Center>
 
-          <Box minW={"65%"} width={"100%"} bg={"gray"}>
-            <List p={12} fontWeight={500}>
-              {moviesList?.results?.length &&
-              moviesList?.results?.length > 0 ? (
-                moviesList?.results?.map((movie: Movie) => {
-                  return (
-                    <ListItem mb={20} border={"solid"} p={8}>
-                      <Flex justifyContent={"space-between"}>
-                        <Box mr={10}>
-                          <Heading>{movie.title}</Heading>
-                          <Text>{movie.release_date}</Text>
-                        </Box>
-                        <Img
-                          maxWidth="150px"
-                          src={
-                            movie.poster_path ? getImage(movie.poster_path) : ""
-                          }
-                          alt={movie.title}
-                        ></Img>
-                      </Flex>
-                    </ListItem>
-                  );
-                })
-              ) : (
-                <Text>Sorry, any movie was found.</Text>
-              )}
-            </List>
-          </Box>
+          {moviesList && (
+            <Box width={"100%"} bg={"gray"}>
+              <List p={12} fontWeight={500}>
+                {moviesList?.results?.length &&
+                moviesList?.results?.length > 0 ? (
+                  moviesList?.results?.map((movie: Movie) => {
+                    return (
+                      <ListItem mb={20} border={"solid"} p={8}>
+                        <Flex justifyContent={"space-between"}>
+                          <Box mr={10}>
+                            <Heading>{movie.title}</Heading>
+                            <Text>{movie.release_date}</Text>
+                          </Box>
+                          <Img
+                            maxWidth="150px"
+                            src={
+                              movie.poster_path
+                                ? getImage(movie.poster_path)
+                                : ""
+                            }
+                            alt={movie.title}
+                          ></Img>
+                        </Flex>
+                      </ListItem>
+                    );
+                  })
+                ) : (
+                  <Text>Sorry, any movie was found.</Text>
+                )}
+              </List>
+            </Box>
+          )}
 
           {showError ?? (
             <Alert status="error">
