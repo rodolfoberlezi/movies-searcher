@@ -16,7 +16,11 @@ import {
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 
-import { MOVIES_API_KEY, MOVIES_API_URL } from "../../apis/constants";
+import {
+  MOVIES_API_KEY,
+  MOVIES_API_URL,
+  MOVIES_IMG_URL,
+} from "../../apis/constants";
 import { Movie, MoviesList } from "../../types/movies";
 
 export const Home: FC = (): ReactElement => {
@@ -26,7 +30,7 @@ export const Home: FC = (): ReactElement => {
   const searchMovies = async () => {
     return await axios
       .get(
-        `${MOVIES_API_URL}/search/movie?query=pantera&api_key=${MOVIES_API_KEY}`
+        `${MOVIES_API_URL}/search/movie?query=${searchTitle}&api_key=${MOVIES_API_KEY}`
       )
       .then((result) => {
         console.log(result.data);
@@ -43,7 +47,9 @@ export const Home: FC = (): ReactElement => {
     return () => clearTimeout(delayTyping);
   }, [searchTitle]);
 
-  // getImage
+  const getImage = (url: string) => {
+    return `${MOVIES_IMG_URL}${url}`;
+  };
 
   return (
     <Container maxW="container.lg">
@@ -73,7 +79,9 @@ export const Home: FC = (): ReactElement => {
                   <ListItem>
                     <Heading>{movie.title}</Heading>
                     <Text>{movie.release_date}</Text>
-                    {/* <Img src={movie?.poster_path}></Img> */}
+                    <Img
+                      src={movie.poster_path ? getImage(movie.poster_path) : ""}
+                    ></Img>
                   </ListItem>
                 );
               })}
