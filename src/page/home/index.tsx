@@ -4,6 +4,7 @@ import {
   Box,
   Center,
   Container,
+  Flex,
   Heading,
   Img,
   Input,
@@ -55,33 +56,45 @@ export const Home: FC = (): ReactElement => {
     <Container maxW="container.lg">
       <Center>
         <Stack>
-          <Heading as="h1">Welcome to MovieSearcher</Heading>
-          <InputGroup size={"lg"} width="100%">
-            <Input
-              p={24}
-              width="100%"
-              onChange={(event: any) => {
-                setSearchTerm(event.target.value);
-              }}
-              placeholder="Search for the title of a movie"
-            ></Input>
-            <InputRightElement
-              p={24}
-              pointerEvents={"none"}
-              children={<SearchIcon />}
-            />
-          </InputGroup>
+          <Center>
+            <Heading as="h1">Welcome to MovieSearcher</Heading>
+          </Center>
+          <Center>
+            <InputGroup size={"lg"} width="100%">
+              <Input
+                p={24}
+                width="100%"
+                onChange={(event: any) => {
+                  setSearchTerm(event.target.value);
+                }}
+                placeholder="Search for the title of a movie"
+              ></Input>
+              <InputRightElement
+                p={24}
+                pointerEvents={"none"}
+                children={<SearchIcon />}
+              />
+            </InputGroup>
+          </Center>
 
-          <Box bg={"gray"} p={12}>
+          <Box width={"100%"} bg={"gray"}>
             <List>
               {moviesList?.results?.map((movie: Movie) => {
                 return (
-                  <ListItem>
-                    <Heading>{movie.title}</Heading>
-                    <Text>{movie.release_date}</Text>
-                    <Img
-                      src={movie.poster_path ? getImage(movie.poster_path) : ""}
-                    ></Img>
+                  <ListItem mb={20} mr={10}>
+                    <Flex justifyContent={"space-between"}>
+                      <Box>
+                        <Heading>{movie.title}</Heading>
+                        <Text>{movie.release_date}</Text>
+                      </Box>
+                      <Img
+                        boxSize="150px"
+                        src={
+                          movie.poster_path ? getImage(movie.poster_path) : ""
+                        }
+                        alt={movie.title}
+                      ></Img>
+                    </Flex>
                   </ListItem>
                 );
               })}
