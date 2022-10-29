@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC, ReactElement, useEffect, useState } from "react";
 import {
   Center,
   Container,
@@ -10,7 +10,18 @@ import {
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 
-export const Home = () => {
+export const Home: FC = (): ReactElement => {
+  const [searchTitle, setSearchTerm] = useState<String>("");
+
+  useEffect(() => {
+    const delayTyping = setTimeout(() => {
+      //axios request
+      console.log("hellow world");
+    }, 500);
+
+    return () => clearTimeout(delayTyping);
+  }, [searchTitle]);
+
   return (
     <Container maxW="container.lg">
       <Center>
@@ -20,6 +31,9 @@ export const Home = () => {
             <Input
               p={24}
               width="100%"
+              onChange={(event: any) => {
+                setSearchTerm(event.target.value);
+              }}
               placeholder="Search for the title of a movie"
             ></Input>
             <InputRightElement
