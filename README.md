@@ -1,4 +1,4 @@
-# Getting Started Movies Searcher Engine
+# Getting Started with Movies Searcher Engine
 
 This project was developed with [Create React App](https://github.com/facebook/create-react-app) boilerplate together with Typescript.
 
@@ -30,6 +30,6 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
-## Main used libraries
+### Main Used libraries
 
 The choosed React component library for this project is [Chakra UI](https://chakra-ui.com).
