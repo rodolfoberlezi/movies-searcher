@@ -1,39 +1,26 @@
 import React, { FC, ReactElement, useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Box,
   Center,
   Container,
-  Flex,
   Heading,
-  Img,
-  Input,
-  InputGroup,
-  InputRightElement,
   List,
-  ListItem,
   Stack,
   Text,
-  Spinner,
 } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 
-import {
-  MOVIES_API_KEY,
-  MOVIES_API_URL,
-  MOVIES_IMG_URL,
-} from "../../apis/constants";
+import { MOVIES_API_KEY, MOVIES_API_URL } from "../../apis/constants";
+import { ErrorAlert } from "../../components/ErrorAlert";
+import { Loader } from "../../components/Loader";
+import { Searcher } from "../../components/Searcher";
 import { Movie, MoviesList } from "../../types/movies";
+import { MovieBanner } from "../../components/MovieBanner";
 
 export const Home: FC = (): ReactElement => {
   const [searchTitle, setSearchTerm] = useState<string>("");
-  const [moviesList, setMoviesList] = useState<Movie[]>(); // change to
-
+  const [moviesList, setMoviesList] = useState<Movie[]>();
   const [moviesResult, setMoviesResult] = useState<MoviesList>();
 
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -44,13 +31,18 @@ export const Home: FC = (): ReactElement => {
     loadMoreMovies();
   });
 
-  const searchMovies = async () => {
+  const errorHandler = (error: any) => {
+    setIsLoading(false);
+    setErrorMessage(error.response.data.status_message);
+  };
+
+  const searchMovies = () => {
     setErrorMessage("");
     setEndOfTheList(false);
 
     if (searchTitle !== "") {
       setIsLoading(true);
-      return await axios
+      return axios
         .get(
           `${MOVIES_API_URL}/search/movie?query=${searchTitle}&api_key=${MOVIES_API_KEY}`
         )
@@ -63,20 +55,19 @@ export const Home: FC = (): ReactElement => {
           }
         })
         .catch((error) => {
-          setIsLoading(false);
-          setErrorMessage(error.response.data.status_message);
+          errorHandler(error);
         });
     }
   };
 
-  const loadMoreMovies = async () => {
+  const loadMoreMovies = () => {
     if (
       moviesResult?.total_pages &&
       moviesResult?.total_pages > 1 &&
       moviesResult?.page !== moviesResult?.total_pages
     ) {
       setIsLoading(true);
-      return await axios
+      return axios
         .get(
           `${MOVIES_API_URL}/search/movie?query=${searchTitle}&page=${
             moviesResult.page + 1
@@ -93,23 +84,18 @@ export const Home: FC = (): ReactElement => {
           }
         })
         .catch((error) => {
-          setIsLoading(false);
-          setErrorMessage(error.response.data.status_message);
+          errorHandler(error);
         });
     }
   };
 
   useEffect(() => {
-    const delayTyping = setTimeout(async () => {
+    const delayTyping = setTimeout(() => {
       searchMovies();
     }, 500);
 
     return () => clearTimeout(delayTyping);
   }, [searchTitle]);
-
-  const getImage = (url: string) => {
-    return `${MOVIES_IMG_URL}${url}`;
-  };
 
   return (
     <Container maxW="container.lg">
@@ -119,51 +105,17 @@ export const Home: FC = (): ReactElement => {
             <Heading as={"h1"}>Welcome to MovieSearcher</Heading>
           </Center>
 
-          <InputGroup size={"lg"} width="100%" colorScheme={"blue"}>
-            <Input
-              p={24}
-              width="100%"
-              onChange={(event: any) => {
-                if (event.target.value) {
-                  setSearchTerm(event.target.value);
-                } else {
-                  setSearchTerm(event.target.value);
-                  setMoviesList(undefined);
-                }
-              }}
-              placeholder="Search for the Title of a Movie"
-            ></Input>
-            <InputRightElement
-              p={24}
-              pointerEvents={"none"}
-              children={<SearchIcon />}
-            />
-          </InputGroup>
+          <Searcher
+            setMoviesList={setMoviesList}
+            setSearchTerm={setSearchTerm}
+          ></Searcher>
 
           {moviesList && (
             <Box width={"100%"} bgColor={"rgba(0, 123, 240, 0.1)"}>
               <List p={12} fontWeight={500}>
                 {moviesList?.length && moviesList?.length > 0 ? (
                   moviesList?.map((movie: Movie) => {
-                    return (
-                      <ListItem mb={20} border={"solid"} p={8}>
-                        <Flex justifyContent={"space-between"}>
-                          <Box mr={10}>
-                            <Heading>{movie.title}</Heading>
-                            <Text>{movie.release_date}</Text>
-                          </Box>
-                          <Img
-                            maxWidth="150px"
-                            src={
-                              movie.poster_path
-                                ? getImage(movie.poster_path)
-                                : ""
-                            }
-                            alt={movie.title}
-                          ></Img>
-                        </Flex>
-                      </ListItem>
-                    );
+                    return <MovieBanner movie={movie}></MovieBanner>;
                   })
                 ) : (
                   <Text>Sorry, any movie was found.</Text>
@@ -183,29 +135,9 @@ export const Home: FC = (): ReactElement => {
             </Box>
           )}
 
-          {errorMessage && (
-            <Box border="solid 1px red" bgColor={"rgba(255, 0, 0, 0.2)"}>
-              <Alert status="error" p={6} flexDirection={"column"}>
-                <AlertIcon w={42} color={"red"} mr={5} />
-                <AlertTitle fontWeight={500}>
-                  Sorry, your search failed.
-                </AlertTitle>
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            </Box>
-          )}
+          {errorMessage && <ErrorAlert message={errorMessage}></ErrorAlert>}
 
-          {isLoading && (
-            <Box m={10} textAlign={"center"}>
-              <Spinner
-                w={100}
-                h={100}
-                thickness="3px"
-                speed="0.65s"
-                color="gray"
-              />
-            </Box>
-          )}
+          {isLoading && <Loader></Loader>}
         </Stack>
       </Center>
     </Container>
