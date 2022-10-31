@@ -32,22 +32,25 @@ export const Home: FC = (): ReactElement => {
   const [searchTitle, setSearchTerm] = useState<string>("");
   const [moviesList, setMoviesList] = useState<MoviesList>();
 
-  const [showError, setShowError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const searchMovies = async () => {
-    return await axios
-      .get(
-        `${MOVIES_API_URL}/search/movie?query=${searchTitle}&api_key=${MOVIES_API_KEY}`
-      )
-      .then((result) => {
-        console.log(result.data);
-        setMoviesList(result.data);
-        return result.data;
-      })
-      .catch((error) => {
-        setShowError(true);
-        return error;
-      });
+    setErrorMessage("");
+
+    if (searchTitle !== "") {
+      return await axios
+        .get(
+          `${MOVIES_API_URL}/search/movie?query=${searchTitle}&api_key=${MOVIES_API_KEY}`
+        )
+        .then((result) => {
+          setMoviesList(result.data);
+          return result.data;
+        })
+        .catch((error) => {
+          setErrorMessage(error.message);
+          return error;
+        });
+    }
   };
 
   useEffect(() => {
@@ -69,31 +72,30 @@ export const Home: FC = (): ReactElement => {
           <Center>
             <Heading as={"h1"}>Welcome to MovieSearcher</Heading>
           </Center>
-          <Center>
-            <InputGroup size={"lg"} width="100%">
-              <Input
-                p={24}
-                width="100%"
-                onChange={(event: any) => {
-                  if (event.target.value) {
-                    setSearchTerm(event.target.value);
-                  } else {
-                    setSearchTerm(event.target.value);
-                    setMoviesList(undefined);
-                  }
-                }}
-                placeholder="Search for the Title of a Movie"
-              ></Input>
-              <InputRightElement
-                p={24}
-                pointerEvents={"none"}
-                children={<SearchIcon />}
-              />
-            </InputGroup>
-          </Center>
+
+          <InputGroup size={"lg"} width="100%" colorScheme={"blue"}>
+            <Input
+              p={24}
+              width="100%"
+              onChange={(event: any) => {
+                if (event.target.value) {
+                  setSearchTerm(event.target.value);
+                } else {
+                  setSearchTerm(event.target.value);
+                  setMoviesList(undefined);
+                }
+              }}
+              placeholder="Search for the Title of a Movie"
+            ></Input>
+            <InputRightElement
+              p={24}
+              pointerEvents={"none"}
+              children={<SearchIcon />}
+            />
+          </InputGroup>
 
           {moviesList && (
-            <Box width={"100%"} bg={"gray"}>
+            <Box width={"100%"} bgColor={"rgba(0, 123, 240, 0.1)"}>
               <List p={12} fontWeight={500}>
                 {moviesList?.results?.length &&
                 moviesList?.results?.length > 0 ? (
@@ -125,14 +127,16 @@ export const Home: FC = (): ReactElement => {
             </Box>
           )}
 
-          {showError ?? (
-            <Alert status="error">
-              <AlertIcon />
-              <AlertTitle>Sorry, your search failed.</AlertTitle>
-              <AlertDescription>
-                Please reset the page and try again.
-              </AlertDescription>
-            </Alert>
+          {errorMessage && (
+            <Box border="solid 1px red" bgColor={"rgba(255, 0, 0, 0.2)"}>
+              <Alert status="error" p={6} flexDirection={"column"}>
+                <AlertIcon w={42} color={"red"} mr={5} />
+                <AlertTitle fontWeight={500}>
+                  Sorry, your search failed.
+                </AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            </Box>
           )}
         </Stack>
       </Center>
