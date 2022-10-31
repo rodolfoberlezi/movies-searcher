@@ -18,8 +18,10 @@ import {
   ListItem,
   Stack,
   Text,
+  Spinner,
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
+import { useBottomScrollListener } from "react-bottom-scroll-listener";
 
 import {
   MOVIES_API_KEY,
@@ -30,25 +32,68 @@ import { Movie, MoviesList } from "../../types/movies";
 
 export const Home: FC = (): ReactElement => {
   const [searchTitle, setSearchTerm] = useState<string>("");
-  const [moviesList, setMoviesList] = useState<MoviesList>();
+  const [moviesList, setMoviesList] = useState<Movie[]>(); // change to
+
+  const [moviesResult, setMoviesResult] = useState<MoviesList>();
 
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [endOfTheList, setEndOfTheList] = useState<boolean>(false);
+
+  useBottomScrollListener(() => {
+    loadMoreMovies();
+  });
 
   const searchMovies = async () => {
     setErrorMessage("");
+    setEndOfTheList(false);
 
     if (searchTitle !== "") {
+      setIsLoading(true);
       return await axios
         .get(
           `${MOVIES_API_URL}/search/movie?query=${searchTitle}&api_key=${MOVIES_API_KEY}`
         )
         .then((result) => {
-          setMoviesList(result.data);
+          setIsLoading(false);
+          setMoviesList(result.data.results);
+          setMoviesResult(result.data);
           return result.data;
         })
         .catch((error) => {
-          setErrorMessage(error.message);
+          setIsLoading(false);
+          setErrorMessage(error.response.data.status_message);
           return error;
+        });
+    }
+  };
+
+  const loadMoreMovies = async () => {
+    if (
+      moviesResult?.total_pages &&
+      moviesResult?.total_pages > 1 &&
+      moviesResult?.page !== moviesResult?.total_pages
+    ) {
+      setIsLoading(true);
+      return await axios
+        .get(
+          `${MOVIES_API_URL}/search/movie?query=${searchTitle}&page=${
+            moviesResult.page + 1
+          }&api_key=${MOVIES_API_KEY}`
+        )
+        .then((result) => {
+          setIsLoading(false);
+          setMoviesList((old: any) => {
+            return [...old, ...result.data.results];
+          });
+          setMoviesResult(result.data);
+          if (result.data.page !== moviesResult?.total_pages) {
+            setEndOfTheList(true);
+          }
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          setErrorMessage(error.response.data.status_message);
         });
     }
   };
@@ -97,9 +142,8 @@ export const Home: FC = (): ReactElement => {
           {moviesList && (
             <Box width={"100%"} bgColor={"rgba(0, 123, 240, 0.1)"}>
               <List p={12} fontWeight={500}>
-                {moviesList?.results?.length &&
-                moviesList?.results?.length > 0 ? (
-                  moviesList?.results?.map((movie: Movie) => {
+                {moviesList?.length && moviesList?.length > 0 ? (
+                  moviesList?.map((movie: Movie) => {
                     return (
                       <ListItem mb={20} border={"solid"} p={8}>
                         <Flex justifyContent={"space-between"}>
@@ -127,6 +171,17 @@ export const Home: FC = (): ReactElement => {
             </Box>
           )}
 
+          {endOfTheList && (
+            <Box
+              width={"100%"}
+              bgColor={"rgba(0, 123, 240, 0.1)"}
+              mt={0}
+              textAlign={"center"}
+            >
+              <Text>End of the list.</Text>
+            </Box>
+          )}
+
           {errorMessage && (
             <Box border="solid 1px red" bgColor={"rgba(255, 0, 0, 0.2)"}>
               <Alert status="error" p={6} flexDirection={"column"}>
@@ -136,6 +191,18 @@ export const Home: FC = (): ReactElement => {
                 </AlertTitle>
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
+            </Box>
+          )}
+
+          {isLoading && (
+            <Box m={10} textAlign={"center"}>
+              <Spinner
+                w={100}
+                h={100}
+                thickness="3px"
+                speed="0.65s"
+                color="gray"
+              />
             </Box>
           )}
         </Stack>
