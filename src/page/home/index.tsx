@@ -58,12 +58,13 @@ export const Home: FC = (): ReactElement => {
           setIsLoading(false);
           setMoviesList(result.data.results);
           setMoviesResult(result.data);
-          return result.data;
+          if (result.data.total_pages === 1) {
+            setEndOfTheList(true);
+          }
         })
         .catch((error) => {
           setIsLoading(false);
           setErrorMessage(error.response.data.status_message);
-          return error;
         });
     }
   };
@@ -87,7 +88,7 @@ export const Home: FC = (): ReactElement => {
             return [...old, ...result.data.results];
           });
           setMoviesResult(result.data);
-          if (result.data.page !== moviesResult?.total_pages) {
+          if (result.data.page === moviesResult?.total_pages) {
             setEndOfTheList(true);
           }
         })
